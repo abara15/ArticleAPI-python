@@ -102,7 +102,7 @@ def get_tag_summary(tagName, date):
     response = {
         "tag": tagName,
         "count": count,
-        "articles": articles,
+        "articles": articles[-10:], # Takes the last 10 article IDs
         "related_tags": related_tags
     }
     
