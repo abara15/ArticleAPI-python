@@ -26,6 +26,10 @@ First endpoint: POST /articles should handle the receipt of some article data in
 """
 @app.route('/articles', methods=['POST'])
 def create_article():
+    # Terminate call if invalid data given in request.
+    if request.form['title'] == '' or request.form['body'] == '' or request.form['tags'] == '':
+        return "Please enter a valid title, body, and tags"
+    
     # Get the database we need in our cluster
     db = client['articles-api-db']
     # Count documents currently in our collection to determine new id - e.g. if we have 50 documents, then the new id will be 51
@@ -105,6 +109,10 @@ def get_tag_summary(tagName, date):
             # Condition to filter out tags which are already in our array.
             if tag not in related_tags and tag != tagName:
                 related_tags.append(tag)
+    
+    if not articles:
+        # No articles associated with the tag, so terminate call
+        return "No articles associated with the given tag and date."
     
     # Create our JSON model for what was required
     response = {
