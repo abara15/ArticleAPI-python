@@ -89,7 +89,7 @@ def get_tag_summary(tagName, date):
     # Get the database we need in our cluster
     db = client['articles-api-db']
     # Get all the documents with the requested tag/date.
-    cursor = db['articles'].find({ 'tags': tagName, 'date': new_date }).limit(10)
+    cursor = db['articles'].find({ 'tags': tagName, 'date': new_date })
     # Count how many articles are within the parameters.
     count = db['articles'].count_documents({ 'tags': tagName, 'date': new_date })
     # Initialised empty list for article
