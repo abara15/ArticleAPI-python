@@ -1,6 +1,7 @@
 from flask import Flask, request
 from datetime import datetime
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 import ssl
 
 # Create Flask app
@@ -8,10 +9,17 @@ app = Flask(__name__)
 
 # Connection URI to MongoDB cluster
 client = MongoClient("mongodb+srv://article-api-user:MrpCs9OHJRNnOzG7@articleapi.k4ptm.mongodb.net/articles-api-db?retryWrites=true&w=majority", serverSelectionTimeoutMS=5000, ssl_cert_reqs=ssl.CERT_NONE)
+# The MongoClient constructor returns immediately and launches the connection process on background threads. So we check if the server is available like this:
+try:
+    client.admin.command('ismaster')
+    print('Server is available')
+except ConnectionFailure:
+    print('Server not available')
 
 @app.route('/')
 def hello():
-    return 'Hello, World!'
+    return 'Welcome to the Articles API!'
+
 
 """
 First endpoint: POST /articles should handle the receipt of some article data in JSON format, and store it within the service.
@@ -107,6 +115,7 @@ def get_tag_summary(tagName, date):
     }
     
     return response
+
 
 if __name__ == "__main__":
     app.run()
