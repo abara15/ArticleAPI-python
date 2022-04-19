@@ -18,11 +18,14 @@ First endpoint: POST /articles should handle the receipt of some article data in
 """
 @app.route('/articles', methods=['POST'])
 def create_article():
+    # Get the database we need in our cluster
     db = client['articles-api-db']
     # Count documents currently in our collection to determine new id - e.g. if we have 50 documents, then the new id will be 51
     count = db['articles'].count_documents({}) + 1
+    # Split string of tags (separated by commas & space) into a list.
     req_tags = request.form['tags'].split(", ")
     
+    # Insert new article into database
     db['articles'].insert_one(
         {
             "id": count,
@@ -32,6 +35,7 @@ def create_article():
             "tags": req_tags
         }
     )
+    
     return f"Article #{count} added to database."
 
 
@@ -40,19 +44,26 @@ Second endpoint: GET /articles/{id} should return the JSON representation of the
 """
 @app.route('/articles/<id>', methods=['GET'])
 def get_article(id):
+    # Get the database we need in our cluster
     db = client['articles-api-db']
+    # Count documents currently in our collection to determine new id - e.g. if we have 50 documents, then the new id will be 51
     count = db['articles'].count_documents({})
-    objects = {}
+    # Initialise empty dict
+    result = {}
     
     if (int(id) > count):
+        # Guarantees to terminate API call if the requested ID is not in the database.
         return "Please query for a valid article."
     else:
+        # Get all the documents with the requested ID - will return a Cursor of one document.
         cursor = db['articles'].find({ 'id': int(id) })
+        # Put the requested article into the dict
         for document in cursor:
-            objects.update(document)
-        # Remove ObjectId - this is a standard field on all MongoDB documents
-        objects.pop('_id')
-        return objects
+            result.update(document)
+        # Remove ObjectId - this is a standard field on all MongoDB documents that we don't need
+        result.pop('_id')
+        # Return the result in JSON format.
+        return result
 
 
 """
@@ -60,23 +71,34 @@ Third endpoint: GET /tags/{tagName}/{date} will return the list of articles that
 """
 @app.route('/tags/<tagName>/<date>', methods=['GET'])
 def get_tag_summary(tagName, date):
-    objects = {}
-    
     # Convert date to correct format
     new_date = datetime.strptime(date, '%Y%m%d').strftime('%Y-%m-%d')
+    
+    # Get the database we need in our cluster
     db = client['articles-api-db']
+    # Get all the documents with the requested tag/date.
     cursor = db['articles'].find({ 'tags': tagName, 'date': new_date }).limit(10)
+    # Count how many articles are within the parameters.
     count = db['articles'].count_documents({ 'tags': tagName, 'date': new_date })
+    # Initialised empty list for article
     articles = []
     related_tags = []
+    # Initialised empty dict which we will use
+    objects = {}
     
+    # Loop over each article with the given tag.
     for document in cursor:
+        # Set the current document to our temporary dict
         objects.update(document)
+        # Append the id of the current document to tjeu array.
         articles.append(objects['id'])
+        # Loop over each tag in the current document
         for tag in objects['tags']:
+            # Condition to filter out tags which are already in our array.
             if tag not in related_tags and tag != tagName:
                 related_tags.append(tag)
     
+    # Create our JSON model for what was required
     response = {
         "tag": tagName,
         "count": count,
