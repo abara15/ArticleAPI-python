@@ -37,4 +37,4 @@ For the third endpoint, I assumed that the ```count``` field simply shows the nu
 I think this was a great test. It was a fun challenge and allowed me to experiment in terms of the assumptions I made. This took me about 5 hours worth of coding and debugging to finish. I was slowed down by trying to figure out how MongoDB works, however I also spent a few hours trying to implement this in Golang and doing research on MongoDB.
 
 ### What else you would have added to the code if you had more time?
-If I had more time, I would've definitely given it a crack in Golang. I also would have tried to simplify my third endpoint a lot more and make this solution a bit more "production ready".
+If I had more time, I would've definitely given it a crack in Golang. I also would have tried to simplify my third endpoint a lot more and make this solution a bit more "production ready". I also would have done more to handle my PyMongo errors, but I ran out of time.
